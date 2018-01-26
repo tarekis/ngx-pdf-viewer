@@ -4,9 +4,6 @@ import { CommonModule } from '@angular/common';
 import { routing } from './ngx-pdf-viewer-routing.module';
 import { NgxPdfViewerComponent } from './ngx-pdf-viewer.component';
 import { PDFJSStatic } from 'pdfjs-dist';
-import * as pdfjsLib from 'pdfjs-dist/webpack';
-// Set worker
-pdfjsLib.PDFJS.workerSrc = 'pdfjs-dist/build/pdf.worker.entry.js';
 
 declare global {
   const PDFJS: PDFJSStatic;

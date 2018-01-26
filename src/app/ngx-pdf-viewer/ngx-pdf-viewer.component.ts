@@ -1,61 +1,64 @@
-import { Component, OnInit, HostBinding } from '@angular/core';
-// import * as pdfjsLib from 'pdfjs-dist';
+import { Component, Input, OnInit } from '@angular/core';
+import { OnChanges, SimpleChanges } from '@angular/core/src/metadata/lifecycle_hooks';
+
+// Import viewer
 import 'pdfjs-dist/web/pdf_viewer.js';
+// Side-import for webpack bundled worker
+import * as pdfjsLib from 'pdfjs-dist/webpack';
+// Set worker
+pdfjsLib.PDFJS.workerSrc = 'pdfjs-dist/build/pdf.worker.entry.js';
 
 @Component({
-  selector: 'app-ngx-pdf-viewer',
-  templateUrl: './ngx-pdf-viewer.component.html',
-  styleUrls: ['./ngx-pdf-viewer.component.css']
+    selector: 'app-ngx-pdf-viewer',
+    templateUrl: './ngx-pdf-viewer.component.html',
+    styleUrls: ['./ngx-pdf-viewer.component.scss']
 })
-export class NgxPdfViewerComponent implements OnInit {
+export class NgxPdfViewerComponent implements OnInit, OnChanges {
 
-    @HostBinding('class.loadingInProgress')
-    loadingInProgress = true;
-    constructor() { }
+    @Input()
+    private pdfURL = '/assets/split_Dansani_Zaro_2017 (1) (1).pdf';
 
-    ngOnInit() {
-        if (!PDFJS.PDFViewer || !PDFJS.getDocument) {
-        alert('Please build the pdfjs-dist library using\n' +
-                '  `gulp dist-install`');
-        }
+    private eventBus = new PDFJS.EventBus();
 
-        const DEFAULT_URL = '/assets/compressed.tracemonkey-pldi-09.pdf';
-        const SEARCH_FOR = ''; // try 'Mozilla';
-
+    renderPDF() {
         const container = document.getElementById('viewerContainer');
 
-        // (Optionally) enable hyperlinks within PDF files.
-        const pdfLinkService = new PDFJS.PDFLinkService();
-
         const pdfViewer = new PDFJS.PDFViewer({
-        container: container,
-        linkService: pdfLinkService,
+            container,
         });
-        pdfLinkService.setViewer(pdfViewer);
 
         // (Optionally) enable find controller.
         const pdfFindController = new PDFJS.PDFFindController({
-        pdfViewer: pdfViewer
+            pdfViewer
         });
         pdfViewer.setFindController(pdfFindController);
 
-        container.addEventListener('pagesinit', function () {
-        // We can use pdfViewer now, e.g. let's change default scale.
-        pdfViewer.currentScaleValue = 'page-width';
-
-        if (SEARCH_FOR) { // We can try search for things
-            pdfFindController.executeCommand('find', {query: SEARCH_FOR});
-        }
+        container.addEventListener('pagesinit', () => {
+            // We can use pdfViewer now, e.g. let's change default scale.
+            pdfViewer.currentScaleValue = 'page-width';
         });
 
         // Loading document.
-        PDFJS.getDocument(DEFAULT_URL).then(function (pdfDocument) {
-        // Document loaded, specifying document for the viewer and
-        // the (optional) linkService.
-        pdfViewer.setDocument(pdfDocument);
-
-        pdfLinkService.setDocument(pdfDocument, null);
+        PDFJS.getDocument(this.pdfURL).then(pdfDocument => {
+            // Document loaded, specifying document for the viewer and
+            // the (optional) linkService.
+            pdfViewer.setDocument(pdfDocument);
+            console.log(pdfjsLib);
+            console.log(PDFJS);
+            console.log(PDFJS.EventBus);
+            console.log(this.eventBus);
+            this.eventBus.dispatch('nextpage');
         });
+    }
 
+    // TODO remove
+    ngOnInit() {
+        this.renderPDF();
+    }
+
+    ngOnChanges(changes: SimpleChanges) {
+        if ('pdfURL' in changes) {
+
+        }
     }
 }
